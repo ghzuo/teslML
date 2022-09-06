@@ -10,21 +10,15 @@ Dr. Guanghong Zuo <ghzuo@ucas.ac.cn>
 @Author: Dr. Guanghong Zuo
 @Date: 2022-09-06 11:33:58
 @Last Modified By: Dr. Guanghong Zuo
-@Last Modified Time: 2022-09-06 16:19:27
+@Last Modified Time: 2022-09-06 19:27:07
 '''
 # Basic set of Python Data Analysis
-from distutils.fancy_getopt import fancy_getopt
-from errno import EBADMSG
-from math import factorial
-from pickletools import markobject
-from sqlite3 import SQLITE_UPDATE
-from tkinter import Grid
 import numpy as np
 import pandas as pd
+from sklearn.metrics import confusion_matrix
 
 # for plot by matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import cm
 import seaborn as sns
 
 from cycler import cycler
@@ -64,10 +58,12 @@ def clplot(score, cl, lab, data):
     pd.value_counts(cl).plot.bar(rot=0)
 
 
-def cmplot(cmat):
-    sns.heatmap(cmat, square=True, annot=True, cbar=False, fmt='.0f')
+def cmplot(y_true, y_pred, cmap='rainbow'):
+    cmat = confusion_matrix(y_true, y_pred)
+    sns.heatmap(cmat, square=True, annot=True,
+                cbar=False, fmt='.0f', cmap=cmap)
     plt.xlabel("predicted Value")
-    plt.ylabel("Tree value")
+    plt.ylabel("True value")
 
 
 def svcplot(X, y, model, plot_support=True):
