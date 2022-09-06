@@ -10,7 +10,7 @@ Dr. Guanghong Zuo <ghzuo@ucas.ac.cn>
 @Author: Dr. Guanghong Zuo
 @Date: 2022-09-06 11:33:58
 @Last Modified By: Dr. Guanghong Zuo
-@Last Modified Time: 2022-09-06 14:31:33
+@Last Modified Time: 2022-09-06 16:19:27
 '''
 # Basic set of Python Data Analysis
 from distutils.fancy_getopt import fancy_getopt
@@ -18,6 +18,7 @@ from errno import EBADMSG
 from math import factorial
 from pickletools import markobject
 from sqlite3 import SQLITE_UPDATE
+from tkinter import Grid
 import numpy as np
 import pandas as pd
 
@@ -35,6 +36,7 @@ sns.mpl.rc("axes", prop_cycle=cycler('color',
                                      ['#E24A33', '#348ABD', '#988ED5',
                                       '#777777', '#FBC15E', '#8EBA42',
                                       '#FFB5B8']))
+sns.set_style('darkgrid', {'axes.facecolor': "0.8"})
 
 
 def srcplot(data, label):
@@ -54,15 +56,16 @@ def clplot(score, cl, lab, data):
 
     plt.subplot(132)
     delta = 0.6/(np.max(cl) - np.min(cl))
-    plt.scatter(data[:, 0], data[:, 1], marker='o',
+    plt.scatter(data[:, 0], data[:, 1], marker='o', label=lab,
                 color=plt.get_cmap('jet')((cl-np.min(cl))*delta+0.2))
+    plt.legend()
 
     plt.subplot(133)
     pd.value_counts(cl).plot.bar(rot=0)
 
 
 def cmplot(cmat):
-    sns.heatmap(cmat, square=True, annot=True, cbar=False)
+    sns.heatmap(cmat, square=True, annot=True, cbar=False, fmt='.0f')
     plt.xlabel("predicted Value")
     plt.ylabel("Tree value")
 
@@ -112,3 +115,8 @@ def vclplot(model, X, y, ax=None, cmap='rainbow'):
                            levels=np.arange(n_classes + 1) - 0.5,
                            cmap=cmap, clim=(y.min(), y.max()), zorder=1)
     ax.set(xlim=xlim, ylim=ylim)
+
+
+def lrplot(lrdata):
+    pd.DataFrame(lrdata).plot(grid=True)
+    plt.gca().set_ylim(0, 1)
