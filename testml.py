@@ -10,15 +10,19 @@ Dr. Guanghong Zuo <ghzuo@ucas.ac.cn>
 @Author: Dr. Guanghong Zuo
 @Date: 2022-09-06 11:33:58
 @Last Modified By: Dr. Guanghong Zuo
-@Last Modified Time: 2022-09-06 19:27:07
+@Last Modified Time: 2022-09-07 15:36:39
 '''
 # Basic set of Python Data Analysis
+from cProfile import label
+from re import L
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 
+
 # for plot by matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 import seaborn as sns
 
 from cycler import cycler
@@ -116,3 +120,59 @@ def vclplot(model, X, y, ax=None, cmap='rainbow'):
 def lrplot(lrdata):
     pd.DataFrame(lrdata).plot(grid=True)
     plt.gca().set_ylim(0, 1)
+
+
+def draw_ellipse(position, covariance, ax=None, **kwargs):
+    """Draw an ellipse with a given position and covariance"""
+    ax = ax or plt.gca()
+    # Convert covariance to principal axes
+    if covariance.shape == (2, 2):
+        U, s, Vt = np.linalg.svd(covariance)
+        angle = np.degrees(np.arctan2(U[1, 0], U[0, 0]))
+        width, height = 2 * np.sqrt(s)
+    else:
+        angle = 0
+        width, height = 2 * np.sqrt(covariance)
+    # Draw the ellipse
+    for nsig in range(1, 4):
+        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
+                             angle, **kwargs))
+
+
+def gmmplot(gmm, X, label=True, ax=None):
+    ax = ax or plt.gca()
+    labels = gmm.fit(X).predict(X)
+    if label:
+        ax.scatter(X[:, 0], X[:, 1], c=labels, s=40, cmap='viridis', zorder=2)
+    else:
+        ax.scatter(X[:, 0], X[:, 1], s=40, zorder=2)
+    ax.axis('equal')
+    w_factor = 0.2 / gmm.weights_.max()
+    for pos, covar, w in zip(gmm.means_, gmm.covariances_, gmm.weights_):
+        draw_ellipse(pos, covar, alpha=w * w_factor)
+
+
+def draw_vector(v0, v1, ax=None):
+    ax = ax or plt.gca()
+    arrowprops = dict(arrowstyle='->', linewidth=4,
+                      shrinkA=0, shrinkB=0, color='b')
+    ax.annotate('', v1, v0, arrowprops=arrowprops)
+
+
+def pcaplot(pca, X):
+    plt.scatter(X[:, 0], X[:, 1], alpha=0.5)
+    for length, vector in zip(pca.explained_variance_, pca.components_):
+        v = vector * 3 * np.sqrt(length)
+        draw_vector(pca.mean_, pca.mean_ + v)
+    plt.axis('equal')
+
+
+def lnfplot(lnf, x, y):
+    plt.scatter(x, y, alpha=0.5)
+    ax = plt.gca()
+    xs, xe = ax.get_xlim()
+    xfit = np.linspace(xs, xe, 100)
+    yfit = lnf.predict(xfit[:, np.newaxis])
+    ax.plot(xfit, yfit, linewidth=4, color='b',
+             label='Rate = {:.2f}'.format(lnf.coef_[0]))
+    plt.legend()
